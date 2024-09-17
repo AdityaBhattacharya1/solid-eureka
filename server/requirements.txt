@@ -1,0 +1,8 @@
+Flask
+requests
+beautifulsoup4
+langchain
+langchain_core
+langchain_google_genai
+googlesearch-python
+python-dotenv
