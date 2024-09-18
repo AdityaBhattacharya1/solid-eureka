@@ -12,7 +12,7 @@ def google_search(query, num_results=10):
 
 
 def get_fuel_cost_per_km(location):
-    return 0.5
+    return 0.5  # assume 0.5 usd per kilometer rate of gas
 
 
 def calculate_transport_cost(start, destination, fuel_cost_per_km):

@@ -39,6 +39,9 @@ def scrape_booking_hotels(
                 rating_element.text.strip() if rating_element else "No ratings found"
             )
 
+            img_element = hotel.find("img", {"data-testid": "image"})
+            img = img_element["src"]
+
             a = datetime.strptime(check_in_date, date_format)
             b = datetime.strptime(check_out_date, date_format)
             delta = b - a
@@ -49,6 +52,7 @@ def scrape_booking_hotels(
                     "location": location,
                     "price": "USD " + str(math.ceil(int(price[3:]) / delta.days)),
                     "rating": rating,
+                    "imgUrl": img,
                 }
             )
         except Exception as e:

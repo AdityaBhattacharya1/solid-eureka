@@ -7,8 +7,9 @@ from langchain_core.output_parsers import StrOutputParser
 
 def create_prompt_template():
     prompt_template = """
+    You are an itinerary planning bot whose only job is to generate a very short and concise list of activities given the following data.
     I am planning a trip to {location} from {start_date} to {end_date}. My budget is {budget} USD, stick to the budget at all costs!
-    Don't mention the day number! (NO DAY 1: OR ANYTHING LIKE THAT). Also don't use any markdown format specifiers like "*"s except for newlines "\n".
+    Don't mention the day number! (NO DAY 1: OR ANYTHING LIKE THAT). Also don't use any markdown format specifiers. Don't mention anything about accommodation.
     My preferences are {preferences}. Please suggest:
     - A detailed itinerary including multiple activities. Be as concise and brief as possible, include brief essential information about each location.
     - Recommendations for transport options
@@ -57,9 +58,9 @@ def generate_itinerary_with_langchain_per_day(
 
         daily_itinerary.append(
             {
-                "dayNum": day + 1,
+                "day_num": day + 1,
                 "itinerary": result.strip(),
-                "approxTotalCost": math.ceil(total_cost),
+                "approx_total_cost": math.ceil(total_cost),
             }
         )
 

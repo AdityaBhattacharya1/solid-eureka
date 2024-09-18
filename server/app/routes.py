@@ -13,7 +13,7 @@ def register_routes(app):
         end_date = data.get("end")
         location = data.get("location")
         preferences = data.get("preferences", [])
-        start_location = data.get("start_location", "New York")
+        start_location = data.get("start_location")
 
         hotels_data = scrape_booking_hotels(location, start_date, end_date, budget)
         fuel_cost_per_km = get_fuel_cost_per_km(location)
