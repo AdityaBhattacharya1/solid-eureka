@@ -114,19 +114,17 @@ def generate_itinerary_with_langchain_per_day(
     b = datetime.strptime(end_date, "%Y-%m-%d")
     num_days = (b - a).days
 
-    # Fetch activities from OpenTripMap
     location_coords = get_location_coordinates(location)
     activities = get_activities_from_opentripmap(location_coords, 10000, preferences)
 
     daily_itinerary = []
     used_activities = set()
-    master_destinations = []  # Master list for all destinations
+    master_destinations = []
 
     for day in range(num_days):
         current_day = (a + timedelta(days=day)).strftime("%Y-%m-%d")
         next_day = (a + timedelta(days=day + 1)).strftime("%Y-%m-%d")
 
-        # Select unique activities for each day
         daily_activities = []
 
         for activity in activities:
@@ -134,7 +132,6 @@ def generate_itinerary_with_langchain_per_day(
                 daily_activities.append(activity)
                 used_activities.add(activity["name"].strip())
 
-                # Add unique lat/lon pairs to the master list
                 lat_lon_pair = (activity["lat"], activity["lon"])
                 if lat_lon_pair not in master_destinations:
                     master_destinations.append(lat_lon_pair)
@@ -142,11 +139,9 @@ def generate_itinerary_with_langchain_per_day(
             if len(daily_activities) >= 3:
                 break
 
-        # Ensure that daily_activities is not empty
         if not daily_activities:
-            continue  # Skip this day if no activities available
+            continue
 
-        # Prepare the prompt with real activities
         day_itinerary_prompt = prompt | llm | StrOutputParser()
         result = day_itinerary_prompt.invoke(
             {
@@ -164,7 +159,7 @@ def generate_itinerary_with_langchain_per_day(
             }
         )
 
-        # mocking accommodation cost, keeping it to 10-15% of budget.
+        # mocking accommodation cost, keeping it to 15-20% of budget.
         accommodation_cost = random.randint(
             math.ceil(0.15 * budget), math.ceil(0.2 * budget)
         )
