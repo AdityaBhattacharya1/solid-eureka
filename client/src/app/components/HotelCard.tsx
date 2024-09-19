@@ -20,7 +20,6 @@ const HotelCard: React.FC<HotelCardProps> = ({
 		<div className="card-body w-[60%]">
 			<h2 className="card-title capitalize">{name}</h2>
 			<p>Location: {location}</p>
-			<p>Price per night: {price}</p>
 			<p>{rating}</p>
 		</div>
 	</div>

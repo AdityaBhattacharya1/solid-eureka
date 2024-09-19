@@ -13,22 +13,16 @@ def register_routes(app):
         end_date = data.get("end")
         location = data.get("location")
         preferences = data.get("preferences", [])
-        start_location = data.get("start_location")
 
         hotels_data = scrape_booking_hotels(location, start_date, end_date, budget)
-        fuel_cost_per_km = get_fuel_cost_per_km(location)
-        transport_cost = calculate_transport_cost(
-            start_location, location, fuel_cost_per_km
-        )
 
-        itinerary_array = generate_itinerary_with_langchain_per_day(
+        itinerary_array, coordinates_list = generate_itinerary_with_langchain_per_day(
             location,
             start_date,
             end_date,
             budget,
             preferences,
-            hotels_data,
-            transport_cost,
+            500,
         )
 
         activity_query = f"things to do in {location}"
@@ -38,7 +32,7 @@ def register_routes(app):
             "itinerary": itinerary_array,
             "activities": activities,
             "hotels": hotels_data[:5],
-            "transport_cost": transport_cost,
+            "coordinates": coordinates_list,
         }
 
         return jsonify(response)

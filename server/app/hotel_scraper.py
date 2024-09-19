@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime, timedelta
+from datetime import datetime
 import math
 
 
@@ -15,7 +15,7 @@ def scrape_booking_hotels(
     }
 
     response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, "html.parser")
+    soup = BeautifulSoup(response.text, "lxml")
     hotels = soup.findAll("div", {"data-testid": "property-card"})
 
     hotels_data = []
@@ -29,10 +29,11 @@ def scrape_booking_hotels(
             location_element = hotel.find("span", {"data-testid": "address"})
             location = location_element.text.strip()
 
-            price_element = hotel.find(
-                "span", {"data-testid": "price-and-discounted-price"}
-            )
-            price = price_element.text.strip()
+            # price_element = hotel.find(
+            #     "span", attrs={"data-testid": "price-and-discounted-price"}
+            # )
+            # print("pe", price_element)
+            # price = price_element.text.strip()
 
             rating_element = hotel.find("span", {"class": "a3332d346a"})
             rating = (
@@ -50,11 +51,12 @@ def scrape_booking_hotels(
                 {
                     "name": name,
                     "location": location,
-                    "price": "USD " + str(math.ceil(int(price[3:]) / delta.days)),
+                    # "price": "USD " + str(math.ceil(int(price[3:]) / delta.days)),
                     "rating": rating,
                     "imgUrl": img,
                 }
             )
+
         except Exception as e:
             print(f"Error extracting hotel details: {e}")
 

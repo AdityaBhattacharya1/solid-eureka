@@ -5,13 +5,13 @@ import HotelCard from './components/HotelCard'
 import Itinerary from './components/Itinerary'
 import ActivityList from './components/ActivityList'
 import Datepicker, { DateValueType } from 'react-tailwindcss-datepicker'
+import Select from 'react-tailwindcss-select'
+import { SelectValue } from 'react-tailwindcss-select/dist/components/type'
 
 export default function HomePage() {
 	const [location, setLocation] = useState('')
-	const [budget, setBudget] = useState('')
-	// const [start, setStart] = useState('')
-	// const [end, setEnd] = useState('')
-	const [preferences, setPreferences] = useState('')
+	const [budget, setBudget] = useState(0)
+	const [preferences, setPreferences] = useState<SelectValue | null>(null)
 	const [itineraryData, setItineraryData] = useState<any>(null)
 	const [error, setError] = useState<string | null>(null)
 	const [loading, setLoading] = useState(false)
@@ -21,20 +21,36 @@ export default function HomePage() {
 	})
 
 	const MIN_DATE = new Date()
-	MIN_DATE.setDate(MIN_DATE.getDate() + 1)
+	const options = [
+		{ value: 'historical', label: 'Historical' },
+		{ value: 'museums', label: 'Museums' },
+		{ value: 'restaurants', label: 'Restaurants' },
+		{ value: 'natural', label: 'Parks' },
+		{ value: 'shops', label: 'Shopping' },
+		{ value: 'entertainment', label: 'Entertainment' },
+		{ value: 'party', label: 'Party' },
+		{ value: 'natural', label: 'Nature' },
+	]
 
-	const scrollToHash = function (elemId: string) {
+	console.log('pref', preferences)
+
+	const scrollToElement = (elemId: string): void => {
 		const element = document.getElementById(elemId)
-		element?.scrollIntoView({
-			behavior: 'smooth',
-			block: 'end',
-			inline: 'nearest',
-		})
+
+		if (element) {
+			window.scrollTo({
+				top: element.offsetTop - 60,
+				behavior: 'smooth',
+			})
+		}
 	}
 
 	const handleSubmit = async (event: React.FormEvent) => {
-		setLoading(true)
 		event.preventDefault()
+		setLoading(true)
+		setTimeout(() => {
+			scrollToElement('itinerary-section')
+		}, 100)
 		setError(null)
 
 		const payload = {
@@ -44,7 +60,7 @@ export default function HomePage() {
 				.toISOString()
 				.split('T')[0],
 			end: new Date(dates?.endDate as Date).toISOString().split('T')[0],
-			preferences: preferences.split(',').map((item) => item.trim()),
+			preferences: (preferences as any[]).map((pref) => pref['value']),
 		}
 
 		try {
@@ -132,7 +148,9 @@ export default function HomePage() {
 									type="number"
 									placeholder="Budget"
 									value={budget}
-									onChange={(e) => setBudget(e.target.value)}
+									onChange={(e) =>
+										setBudget(parseInt(e.target.value))
+									}
 									className="input input-bordered text-black"
 									required
 								/>
@@ -144,15 +162,15 @@ export default function HomePage() {
 										Preferences
 									</span>
 								</label>
-								<input
-									type="text"
-									placeholder="Preferences (comma separated)"
+
+								<Select
+									primaryColor="white"
 									value={preferences}
-									onChange={(e) =>
-										setPreferences(e.target.value)
-									}
-									className="input input-bordered text-black"
-									required
+									onChange={(value) => setPreferences(value)}
+									options={options}
+									isClearable
+									isMultiple
+									isSearchable
 								/>
 							</div>
 
@@ -160,9 +178,6 @@ export default function HomePage() {
 								type="submit"
 								className="btn btn-primary btn-outline my-4"
 								disabled={loading}
-								onClick={() =>
-									scrollToHash('#itinerary-section')
-								}
 							>
 								Generate Itinerary!
 							</button>
@@ -170,95 +185,69 @@ export default function HomePage() {
 					</div>
 				</div>
 			</div>
+			<main id="itinerary-section">
+				{error && (
+					<p className="text-4xl text-red font-bold">
+						{error} Error generating itinerary!
+					</p>
+				)}
 
-			{error && <p className="">{error}</p>}
+				{loading ? (
+					<div className="text-center py-10 w-full">
+						<span className="block text-2xl font-semibold">
+							Loading your next adventure...
+						</span>
+						<span className="mt-6 loading loading-spinner loading-lg"></span>
+					</div>
+				) : (
+					<section>
+						{itineraryData && (
+							<div>
+								<h2 className="text-5xl font-bold py-10 text-center">
+									Generated Itinerary
+								</h2>
 
-			{loading ? (
-				<div className="text-center py-10 w-full">
-					<span className="block text-2xl font-semibold">
-						Loading your next adventure...
-					</span>
-					<span className="mt-6 loading loading-spinner loading-lg"></span>
-				</div>
-			) : (
-				<section id="itinerary-section">
-					{itineraryData && (
-						<div>
-							<h2 className="text-5xl font-bold py-10 text-center">
-								Generated Itinerary
-							</h2>
+								<ul className="timeline timeline-vertical">
+									{itineraryData.itinerary?.map(
+										(item: any, idx: number) => (
+											<Itinerary
+												dayNum={item['day_num']}
+												idx={idx}
+												itinerary={item.itinerary}
+												key={idx}
+											/>
+										)
+									)}
+								</ul>
 
-							<ul className="timeline timeline-vertical">
-								{itineraryData.itinerary?.map(
-									(item: any, idx: number) => (
-										<li key={item['day_num']}>
-											<hr />
-											<div
-												className={
-													idx % 2 === 0
-														? 'timeline-end'
-														: 'timeline-start'
-												}
-											>
-												Day {item['day_num']}
-											</div>
-											<div className="timeline-middle">
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													viewBox="0 0 20 20"
-													fill="currentColor"
-													className="h-5 w-5"
-												>
-													<path
-														fillRule="evenodd"
-														d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-														clipRule="evenodd"
-													/>
-												</svg>
-											</div>
-											<div
-												className={
-													'timeline-box ' +
-													(idx % 2 === 0
-														? 'timeline-start'
-														: 'timeline-end')
-												}
-											>
-												{item.itinerary}
-											</div>
-											<hr />
-										</li>
-									)
-								)}
-							</ul>
+								<h2 className="text-4xl font-bold text-center py-10">
+									Recommended Hotels
+								</h2>
+								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+									{itineraryData?.hotels?.map(
+										(hotel: any, index: number) => (
+											<HotelCard
+												key={index}
+												name={hotel.name}
+												location={hotel.location}
+												price={hotel.price}
+												rating={hotel.rating}
+												imgUrl={hotel.imgUrl}
+											/>
+										)
+									)}
+								</div>
 
-							<h2 className="text-4xl font-bold text-center py-10">
-								Recommended Hotels
-							</h2>
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-								{itineraryData?.hotels?.map(
-									(hotel: any, index: number) => (
-										<HotelCard
-											key={index}
-											name={hotel.name}
-											location={hotel.location}
-											price={hotel.price}
-											rating={hotel.rating}
-											imgUrl={hotel.imgUrl}
-										/>
-									)
+								{itineraryData.activities && (
+									<ActivityList
+										activities={itineraryData.activities}
+									/>
 								)}
 							</div>
-
-							{itineraryData.activities && (
-								<ActivityList
-									activities={itineraryData.activities}
-								/>
-							)}
-						</div>
-					)}
-				</section>
-			)}
+						)}
+					</section>
+				)}
+			</main>
 		</div>
 	)
 }
