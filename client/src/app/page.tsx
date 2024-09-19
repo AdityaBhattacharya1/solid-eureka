@@ -47,7 +47,7 @@ export default function HomePage() {
 	const scrollToElement = (elemId: string): void => {
 		const element = document.getElementById(elemId)
 
-		if (element) {
+		if (element && typeof window !== undefined) {
 			window.scrollTo({
 				top: element.offsetTop - 60,
 				behavior: 'smooth',
