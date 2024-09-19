@@ -8,6 +8,10 @@ import Datepicker, { DateValueType } from 'react-tailwindcss-datepicker'
 import Select from 'react-tailwindcss-select'
 import { SelectValue } from 'react-tailwindcss-select/dist/components/type'
 import MapComponent from './components/Map'
+import { useAuth } from '@/hooks/useAuth'
+import { db } from '@/firebase'
+import { collection, addDoc } from 'firebase/firestore'
+import { useRouter } from 'next/navigation'
 
 export default function HomePage() {
 	const [location, setLocation] = useState('')
@@ -20,6 +24,13 @@ export default function HomePage() {
 		startDate: null,
 		endDate: null,
 	})
+	const { user } = useAuth()
+	const router = useRouter()
+
+	if (!user) {
+		router.push('/auth') // Redirect to login if not authenticated
+		return null
+	}
 
 	const MIN_DATE = new Date()
 	const options = [
@@ -71,6 +82,25 @@ export default function HomePage() {
 
 			const data = await res.json()
 			setItineraryData(data)
+			if (user) {
+				try {
+					const docRef = await addDoc(collection(db, 'itineraries'), {
+						userId: user.uid,
+						itinerary: data['itinerary'],
+						place: location,
+						budget: budget,
+						preferences: (preferences as any[]).map(
+							(pref) => pref['value']
+						),
+						createdAt: new Date(),
+					})
+					console.log('Itinerary saved with ID: ', docRef.id)
+				} catch (err) {
+					console.error('Error saving itinerary: ', err)
+				}
+			} else {
+				console.error('User is not authenticated')
+			}
 		} catch (err) {
 			setError('Error fetching itinerary')
 		} finally {
