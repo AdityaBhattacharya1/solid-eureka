@@ -7,11 +7,12 @@ import ActivityList from './components/ActivityList'
 import Datepicker, { DateValueType } from 'react-tailwindcss-datepicker'
 import Select from 'react-tailwindcss-select'
 import { SelectValue } from 'react-tailwindcss-select/dist/components/type'
-import MapComponent from './components/Map'
+const MapComponent = dynamic(() => import('./components/Map'), { ssr: false })
 import { useAuth } from '@/hooks/useAuth'
 import { db } from '@/firebase'
 import { collection, addDoc } from 'firebase/firestore'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 
 export default function HomePage() {
 	const [location, setLocation] = useState('')
@@ -45,13 +46,13 @@ export default function HomePage() {
 	]
 
 	const scrollToElement = (elemId: string): void => {
-		const element = document.getElementById(elemId)
-
-		if (element && typeof window !== undefined) {
-			window.scrollTo({
-				top: element.offsetTop - 60,
-				behavior: 'smooth',
-			})
+		if (typeof window !== undefined) {
+			const element = document.getElementById(elemId)
+			if (element)
+				window.scrollTo({
+					top: element.offsetTop - 60,
+					behavior: 'smooth',
+				})
 		}
 	}
 
