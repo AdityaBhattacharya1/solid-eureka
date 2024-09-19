@@ -41,6 +41,10 @@ def calculate_transport_cost(itinerary, cost_per_km=0.5):
             and "lon" in itinerary[i - 1]
             and "lat" in itinerary[i]
             and "lon" in itinerary[i]
+            and itinerary[i - 1]["lat"] != float("inf")
+            and itinerary[i - 1]["lon"] != float("inf")
+            and itinerary[i]["lat"] != float("inf")
+            and itinerary[i]["lon"] != float("inf")
         ):
             lat1, lon1 = itinerary[i - 1]["lat"], itinerary[i - 1]["lon"]
             lat2, lon2 = itinerary[i]["lat"], itinerary[i]["lon"]

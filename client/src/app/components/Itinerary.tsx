@@ -1,10 +1,18 @@
+import removeMd from 'remove-markdown'
+
 interface ItineraryProps {
 	idx: number
 	dayNum: number
 	itinerary: string
+	approxCost: number
 }
 
-const Itinerary: React.FC<ItineraryProps> = ({ idx, dayNum, itinerary }) => (
+const Itinerary: React.FC<ItineraryProps> = ({
+	idx,
+	dayNum,
+	itinerary,
+	approxCost,
+}) => (
 	<li key={dayNum}>
 		<hr />
 		<div className={idx % 2 === 0 ? 'timeline-end' : 'timeline-start'}>
@@ -26,11 +34,14 @@ const Itinerary: React.FC<ItineraryProps> = ({ idx, dayNum, itinerary }) => (
 		</div>
 		<div
 			className={
-				'timeline-box ' +
+				'timeline-box whitespace-pre-line border-[#1e293b] border-2 w-3/4 ' +
 				(idx % 2 === 0 ? 'timeline-start' : 'timeline-end')
 			}
 		>
-			{itinerary.replace(/\*/g, '%')}
+			{removeMd(itinerary.replace(/\*/g, ''))}
+			<div className="pt-6 pb-3 font-semibold text-green-700">
+				Approximate Cost: USD {approxCost}
+			</div>
 		</div>
 		<hr />
 	</li>

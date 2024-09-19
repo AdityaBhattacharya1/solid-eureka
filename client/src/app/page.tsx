@@ -215,6 +215,9 @@ export default function HomePage() {
 												idx={idx}
 												itinerary={item.itinerary}
 												key={idx}
+												approxCost={
+													item['approx_total_cost']
+												}
 											/>
 										)
 									)}

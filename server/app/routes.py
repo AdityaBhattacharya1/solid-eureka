@@ -1,7 +1,8 @@
 from flask import request, jsonify
 from .hotel_scraper import scrape_booking_hotels
 from .itinerary_generator import generate_itinerary_with_langchain_per_day
-from .utils import google_search, get_fuel_cost_per_km, calculate_transport_cost
+from .utils import google_search
+import random
 
 
 def register_routes(app):
@@ -16,13 +17,15 @@ def register_routes(app):
 
         hotels_data = scrape_booking_hotels(location, start_date, end_date, budget)
 
-        itinerary_array, coordinates_list = generate_itinerary_with_langchain_per_day(
-            location,
-            start_date,
-            end_date,
-            budget,
-            preferences,
-            500,
+        itinerary_array, coordinates_list, total_transport_cost = (
+            generate_itinerary_with_langchain_per_day(
+                location,
+                start_date,
+                end_date,
+                budget,
+                preferences,
+                random.uniform(0.01, 0.5),
+            )
         )
 
         activity_query = f"things to do in {location}"
@@ -33,6 +36,7 @@ def register_routes(app):
             "activities": activities,
             "hotels": hotels_data[:5],
             "coordinates": coordinates_list,
+            "transport_cost": total_transport_cost,
         }
 
         return jsonify(response)

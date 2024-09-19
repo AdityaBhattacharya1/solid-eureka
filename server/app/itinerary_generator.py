@@ -62,17 +62,29 @@ def get_activities_from_opentripmap(location, radius, preferences):
 
 def create_prompt_template():
     prompt_template = """
-    You are an itinerary planning bot whose only job is to generate a very short and concise list of activities given the following data.
-    I am planning a trip to {location} from {start_date} to {end_date}. My budget is {budget} USD, stick to the budget at all costs!
-    Don't mention the day number! (NO DAY 1: OR ANYTHING LIKE THAT). Also don't use any markdown format specifiers. Don't mention anything about accommodation.
-    My preferences are {preferences}. Please suggest:
-    - A semi-detailed itinerary strictly from the given list of activities: {activities}. Apart from the given list, give suggestions only for non-prominent landmarks such as restaurants and local famous eateries. Never suggest popular historical landmarks on your own!
-      Be as concise and brief as possible, include brief essential information about each location.
-    - Recommendations for transport options
-    - Do suggest some local cultural activities such as unique street plays, street food, etc. briefly.  
-    - Always give options, at each and every step. Never suggest a single plan of action. Give minimum 2-3 suitable alternatives for each day of the trip duration.
-    DON'T USE ANY FORMATTING OR FLOWERY STUFF, STICK TO JUST PROVIDING INFORMATION. DON'T WRITE ANY NOTES EITHER. Do not repeat the prompt anywhere in the response.
-    If description is not provided for any activity, generate a very brief and accurate description on your own.
+    You are an itinerary planning bot. Your task is to generate a concise, fixed-format itinerary with multiple options, given the following data.
+
+    I am planning a trip to {location} from {start_date} to {end_date}. My budget is {budget} USD, and it must not be exceeded. Limit your response to 200 words. The itinerary should include the following:
+
+    Itinerary of Activities:
+
+    List 2-3 activities per day from the provided activity list: {activities}.
+    If a specific name is not provided, generate an accurate and plausible name for local restaurants, markets, or other landmarks based on the location.
+    Only suggest non-prominent landmarks like restaurants and local famous eateries; do not include famous historical landmarks unless provided.
+    Transport Options:
+
+    Provide 2-3 alternatives for transport options between activities (e.g., walking, public transport, taxis).
+    Local Cultural Activities:
+
+    Suggest 2-3 cultural activities (e.g., street food, performances) that align with the preferences: {preferences}.
+    Important Rules:
+
+    Do not mention day numbers (avoid "Day 1", etc.).
+    Avoid using any markdown formatting, titles, headers, or unnecessary text embellishments.
+    Do not use placeholders such as "[Restaurant Name]". Always provide a plausible or real name where a specific name isn't provided.
+    Do not mention accommodation.
+    Stick to concise, bullet-pointed answers with no flowery language or extra notes.
+    Provide alternatives where possible.
     """
     return PromptTemplate(
         input_variables=[
@@ -88,7 +100,12 @@ def create_prompt_template():
 
 
 def generate_itinerary_with_langchain_per_day(
-    location, start_date, end_date, budget, preferences, transport_cost
+    location,
+    start_date,
+    end_date,
+    budget,
+    preferences,
+    transport_cost_per_km,
 ):
     llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
     prompt = create_prompt_template()
@@ -97,34 +114,39 @@ def generate_itinerary_with_langchain_per_day(
     b = datetime.strptime(end_date, "%Y-%m-%d")
     num_days = (b - a).days
 
+    # Fetch activities from OpenTripMap
     location_coords = get_location_coordinates(location)
     activities = get_activities_from_opentripmap(location_coords, 10000, preferences)
 
     daily_itinerary = []
     used_activities = set()
+    master_destinations = []  # Master list for all destinations
 
     for day in range(num_days):
         current_day = (a + timedelta(days=day)).strftime("%Y-%m-%d")
         next_day = (a + timedelta(days=day + 1)).strftime("%Y-%m-%d")
 
+        # Select unique activities for each day
         daily_activities = []
+
         for activity in activities:
             if activity["name"].strip() not in used_activities:
                 daily_activities.append(activity)
                 used_activities.add(activity["name"].strip())
+
+                # Add unique lat/lon pairs to the master list
+                lat_lon_pair = (activity["lat"], activity["lon"])
+                if lat_lon_pair not in master_destinations:
+                    master_destinations.append(lat_lon_pair)
+
             if len(daily_activities) >= 3:
                 break
 
-            if not daily_activities:
-                daily_activities = [
-                    {
-                        "name": "No activities available",
-                        "description": "Explore the city freely!",
-                        "lat": 0,
-                        "lon": 0,
-                    }
-                ]
+        # Ensure that daily_activities is not empty
+        if not daily_activities:
+            continue  # Skip this day if no activities available
 
+        # Prepare the prompt with real activities
         day_itinerary_prompt = prompt | llm | StrOutputParser()
         result = day_itinerary_prompt.invoke(
             {
@@ -133,37 +155,33 @@ def generate_itinerary_with_langchain_per_day(
                 "end_date": next_day,
                 "budget": budget,
                 "preferences": ", ".join(preferences),
-                "activities": daily_activities,
+                "activities": "\n".join(
+                    [
+                        f"{activity['name']}: {activity['description']}"
+                        for activity in daily_activities
+                    ]
+                ),
             }
         )
 
-        # mocking accomodation cost, keeping it to 15-25% of budget.
+        # mocking accommodation cost, keeping it to 10-15% of budget.
         accommodation_cost = random.randint(
-            math.ceil(0.15 * budget), math.ceil(0.25 * budget)
+            math.ceil(0.15 * budget), math.ceil(0.2 * budget)
+        )
+
+        activity_cost = 50
+        total_cost = accommodation_cost + activity_cost
+
+        total_transport_cost = calculate_transport_cost(
+            master_destinations, cost_per_km=transport_cost_per_km
         )
 
         daily_itinerary.append(
             {
                 "day_num": day + 1,
                 "itinerary": result.strip(),
-                "lat": daily_activities[0]["lat"] if len(daily_activities) != 0 else [],
-                "lon": daily_activities[0]["lon"] if len(daily_activities) != 0 else [],
-                "approx_total_cost": accommodation_cost,
+                "approx_total_cost": math.ceil(total_cost / num_days),
             }
         )
 
-        transport_cost = calculate_transport_cost(itinerary=daily_itinerary)
-        # coordinates_list = [
-        #     (day["lat"], day["lon"])
-        #     for day in daily_itinerary
-        #     if "lat" in day and "lon" in day
-        # ]
-
-        for day in daily_itinerary:
-            day["approx_total_cost"] += math.floor(transport_cost / num_days)
-
-    return daily_itinerary, [
-        (day["lat"], day["lon"])
-        for day in daily_itinerary
-        if "lat" in day and "lon" in day
-    ]
+    return daily_itinerary, master_destinations, total_transport_cost
