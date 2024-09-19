@@ -7,6 +7,7 @@ import ActivityList from './components/ActivityList'
 import Datepicker, { DateValueType } from 'react-tailwindcss-datepicker'
 import Select from 'react-tailwindcss-select'
 import { SelectValue } from 'react-tailwindcss-select/dist/components/type'
+import MapComponent from './components/Map'
 
 export default function HomePage() {
 	const [location, setLocation] = useState('')
@@ -31,8 +32,6 @@ export default function HomePage() {
 		{ value: 'party', label: 'Party' },
 		{ value: 'natural', label: 'Nature' },
 	]
-
-	console.log('pref', preferences)
 
 	const scrollToElement = (elemId: string): void => {
 		const element = document.getElementById(elemId)
@@ -203,6 +202,9 @@ export default function HomePage() {
 					<section>
 						{itineraryData && (
 							<div>
+								<MapComponent
+									destinations={itineraryData['coordinates']}
+								/>
 								<h2 className="text-5xl font-bold py-10 text-center">
 									Generated Itinerary
 								</h2>
