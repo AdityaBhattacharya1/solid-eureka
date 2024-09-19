@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	env: {
-		FLASK_API_URL: process.env.FLASK_API_URL || 'http://localhost:5000',
+		FLASK_API_URL:
+			process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000',
 	},
 }
 

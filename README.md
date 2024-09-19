@@ -2,131 +2,208 @@
 
 ## **1. Overview and Architecture**
 
-The Itinerary Generator is a full-stack application designed to provide users with personalized travel itineraries based on their preferences, budget, and dates of travel. The architecture consists of two primary components: the **frontend** and the **backend**, which interact with external APIs (such as OpenTripMap) to fetch data and provide user-specific results. Here's a breakdown of the overall architecture:
+The Itinerary Generator is a full-stack application designed to provide users with personalized travel itineraries based on their preferences, budget, and travel dates. The architecture consists of three primary components: the **frontend**, the **backend**, and Firebase services. These components interact with external APIs (like OpenTripMap) to fetch data and provide user-specific results, which are stored securely in Firestore for logged-in users. Here's a breakdown of the overall architecture:
 
--   **Frontend (React + TypeScript + Leaflet):**
-    -   Handles user interaction.
-    -   Presents an intuitive map-based interface where users can visualize their itinerary and destinations.
-    -   Sends requests to the backend for itinerary generation.
--   **Backend (Python + Flask):**
-    -   Interacts with third-party APIs (OpenTripMap) to fetch data on destinations.
-    -   Processes user inputs to create a detailed itinerary.
-    -   Provides endpoints for fetching and sending itinerary data to the frontend.
+-   **Frontend (Next.js + TypeScript + Firebase + Leaflet):**
+    -   Handles user interaction, including login and itinerary generation.
+    -   Presents a map-based interface where users can visualize their itinerary and destinations.
+    -   Sends requests to the backend for itinerary generation and interacts with Firebase services to store/retrieve user data.
+-   **Backend (Next.js API Routes):**
+
+    -   Serves as the core logic for itinerary generation.
+    -   Interacts with external APIs (OpenTripMap) to fetch data on destinations.
+    -   Processes user inputs to create a detailed itinerary and stores it in Firestore for logged-in users.
+
 -   **External APIs (OpenTripMap):**
+
     -   Used to gather information about destinations, attractions, and activities based on user preferences.
     -   Supports fetching of activities, transportation data, and calculating total travel distance.
 
+-   **Firebase Services (Authentication + Firestore):**
+    -   **Firebase Authentication** (Google OAuth) manages user login and authentication.
+    -   **Firestore** stores user-specific itineraries, allowing users to retrieve and view previously generated itineraries.
+
+---
+
 ## **2. Key Technologies and Decisions**
 
-### **Frontend: React + TypeScript + Leaflet**
+### **Frontend: Next.js + TypeScript + Firebase + Leaflet**
 
--   **React:** React was chosen for its component-based architecture, which allows us to build reusable and modular pieces of UI. Given the need for dynamic updates (e.g., rendering new destinations on the map), React efficiently manages state and DOM rendering.
--   **TypeScript:** Using TypeScript provides static type-checking, ensuring better developer experience and fewer runtime errors. This is especially crucial when dealing with complex objects such as coordinates and API responses.
--   **Leaflet (React-Leaflet):** Leaflet is a lightweight, open-source JavaScript library for maps. Combined with the React-Leaflet integration, it enables a highly interactive map that can display markers, lines, and dynamic zoom features. The integration with Leaflet allows for real-time rendering of destinations and a smooth user experience.
+-   **Next.js (App Router):** Provides server-side rendering and API routes that allow for a scalable, modern web application. The new App Router structure simplifies routing and backend integration in a React framework.
+-   **TypeScript:** Using TypeScript ensures type safety, especially when dealing with complex API responses, coordinates, and other dynamic data. It reduces runtime errors and improves maintainability.
 
-### **Backend: Python + Flask**
+-   **Firebase Client SDK (Authentication + Firestore):**
+    -   Firebase Authentication is used to implement **Google OAuth** for easy user sign-in.
+    -   Firestore stores user-generated itineraries, allowing users to persist and access their data across sessions.
+-   **Leaflet (React-Leaflet):** Leaflet is an open-source library for map rendering. It integrates well with React through React-Leaflet, allowing dynamic rendering of maps and markers to display travel destinations.
 
--   **Flask:** Flask is a micro web framework that offers simplicity and flexibility. Given the lightweight nature of the application and the fact that it primarily interacts with external APIs, Flask was an optimal choice. Flask allows for quick setup and development of RESTful APIs, which the frontend can consume.
+### **Backend: Next.js API Routes**
 
--   **External APIs (OpenTripMap):** OpenTripMap was chosen for fetching geospatial data about activities, landmarks, and points of interest. It offers detailed categorization and precise location information that was essential for the application's itinerary generation logic.
+-   **Next.js API Routes** handle requests for itinerary generation and interacting with third-party APIs like OpenTripMap. These server-side functions handle the processing logic before sending data back to the frontend or storing it in Firestore.
 
 ### **Key Justifications for These Technologies**
 
--   **React + TypeScript** ensures maintainability and robustness on the frontend. In an application where data from multiple APIs needs to be processed and displayed on a map, TypeScript reduces potential runtime errors, and React ensures efficient rendering.
--   **Flask** is lightweight and sufficient for handling the backend logic in this specific context. Given that the bulk of the computation happens via API calls, Flask is a good fit.
--   **Leaflet** was preferred over more heavyweight alternatives like Google Maps API due to its lightweight nature and ease of customization.
--   **OpenTripMap** was chosen because of its extensive database of tourist attractions, including historical sites, restaurants, parks, and entertainment venues. The API provides geolocation data, which is essential for mapping destinations.
+-   **Next.js + TypeScript** provides a strong framework for server-side rendering and building scalable web apps with typed safety. The App Router improves backend/frontend interaction.
+-   **Firebase Authentication & Firestore** simplify user authentication and provide a secure, scalable, and easy-to-manage database for storing user itineraries.
+-   **Leaflet** was selected for its lightweight nature and ability to seamlessly handle geographic data, providing an efficient way to display travel destinations.
+-   **OpenTripMap** API provides detailed tourist information for destinations, enhancing itinerary generation.
+
+---
 
 ## **3. Frontend Implementation**
 
 ### **React Components**
 
--   **MapComponent:**
+-   **MapComponent:**  
+    The core map visualization logic is implemented using `react-leaflet`. It dynamically places markers for each destination based on latitude and longitude coordinates and uses the `fitBounds` function to auto-adjust the zoom to display all destinations within view.
 
-    -   The core map visualization logic is implemented in the `MapComponent`, which uses the `react-leaflet` library to render a map with dynamic zoom, markers for destinations, and lines to represent travel routes.
-    -   Markers are placed based on destination coordinates, and the map dynamically adjusts its zoom using the `fitBounds` function to fit all destinations.
+-   **FormComponent:**  
+    A form allows users to input their destination, travel dates, budget, and preferences. Upon submission, the form data is sent to the backend for itinerary generation.
 
--   **FormComponent:**
+-   **LoginPage (auth/login):**  
+    Implements Firebase Google OAuth login with a button to allow users to sign in using their Google account.
 
-    -   A form allows users to input their destination, travel dates, budget, and preferences. This form then sends the data to the backend to fetch a personalized itinerary.
+-   **DashboardPage (/dashboard):**  
+    After logging in, users are redirected to the dashboard, which displays their previously generated itineraries. The dashboard integrates with **Daisy UI** components for a clean, responsive interface.
 
--   **Dynamic Zoom & Marker Placement:**
-    -   Leaflet’s `fitBounds` method is used to automatically adjust the zoom level to fit all the provided markers on the map, ensuring that users can see all destinations without manually adjusting the view.
+-   **SignOutButton:**  
+    Provides the ability to log out from Firebase. Users can sign out via a simple button on the dashboard page.
+
+-   **Google OAuth Login:**  
+    Using Firebase Authentication, users can sign in using their Google account, ensuring a seamless login experience.
+
+-   **Firestore Integration:**  
+    Once logged in, users' generated itineraries are saved to Firestore, allowing them to view previous itineraries upon returning to the app. Itineraries are saved under their unique user ID.
 
 ### **Challenges on the Frontend**
 
--   **Coordinate Management:**
-    -   One challenge faced was ensuring the correct handling of coordinates from the API response, especially with inconsistent or missing values. Filtering logic was added to handle empty or malformed responses from OpenTripMap, preventing incorrect markers from being displayed on the map.
--   **Handling Invalid API Responses:**
-    -   At times, OpenTripMap returned invalid data or empty arrays for certain preferences. To solve this, fallback logic was introduced to skip empty activities and continue generating itineraries based on available data.
+-   **Handling Invalid Coordinates:**  
+    When the OpenTripMap API returns empty or invalid data, fallback logic was implemented to avoid rendering faulty markers on the map. This ensures a smooth user experience with valid data.
+
+-   **Dynamic Map Zoom:**  
+    Using Leaflet's `fitBounds` method to automatically adjust the zoom level to fit all destination markers on the map solved the challenge of users manually adjusting the zoom.
+
+---
 
 ## **4. Backend Implementation**
 
-### **Endpoints**
+### **Next.js API Routes**
 
-1. **Itinerary Generation Endpoint:**
+The backend is implemented as server-side functions in Next.js using API routes. These routes handle interactions with OpenTripMap to fetch activities and generate itineraries.
 
-    - This endpoint takes the user’s preferences, budget, and travel dates, interacts with the OpenTripMap API, and generates a personalized itinerary. The response includes activities, their coordinates, and calculated travel distances.
+1. **Itinerary Generation API:**  
+   This endpoint takes the user's input (destination, dates, budget, preferences), interacts with OpenTripMap, and returns a detailed itinerary.
 
-2. **Transport Cost Calculation:**
-    - A critical aspect of the application is calculating the transportation cost between destinations. This is done by using the Haversine formula to compute distances between latitudes and longitudes of all destinations in the itinerary. The total cost is calculated based on the total distance traveled.
+2. **Firestore Integration:**  
+   When a user is logged in, the generated itinerary is saved to Firestore under their unique user ID.
 
 ### **Key Functions**
 
 -   **`get_location_coordinates`:** Fetches latitude and longitude for a given location.
--   **`get_activities_from_opentripmap`:** Fetches activities for the given location based on preferences (historical, museums, etc.).
--   **`calculate_transport_cost`:** Calculates the total distance traveled between all destinations using the Haversine formula and determines the associated transport cost.
+-   **`get_activities_from_opentripmap`:** Fetches activities based on user preferences (e.g., historical, museums, restaurants).
+-   **`calculate_transport_cost`:** Uses the Haversine formula to compute distances between destinations and calculate transport costs.
 
 ### **Challenges on the Backend**
 
--   **Handling Empty API Responses:**
+-   **Handling Empty API Responses:**  
+    OpenTripMap occasionally returns no results or empty arrays. Logic was implemented to handle these cases by skipping invalid entries, ensuring the itinerary generation process continues smoothly.
 
-    -   OpenTripMap API occasionally returns no results for certain locations or preferences. Logic was added to skip empty responses, ensuring that the itinerary generation continues without errors.
+-   **Firebase Data Storage:**  
+    Storing and retrieving itineraries for specific users required efficient integration with Firebase Firestore, ensuring that only authenticated users could access their data.
 
--   **Haversine Formula Implementation:**
-    -   The backend needed to correctly calculate the distance between all selected destinations to provide accurate transportation costs. The Haversine formula was used to calculate great-circle distances between two latitude/longitude points.
-
-### **Data Flow**
-
-1. **User Input:**
-
-    - The user provides the location, check-in/check-out dates, budget, and preferences via the frontend form.
-
-2. **Backend API Call:**
-
-    - The frontend sends a request to the Flask backend, which calls OpenTripMap to fetch destinations based on preferences.
-
-3. **Itinerary Generation:**
-    - The backend processes the data, selects activities, calculates transportation costs, and sends the itinerary and relevant details back to the frontend.
+---
 
 ## **5. Interesting Nuances and Challenges**
 
--   **Dynamic Map Zoom:**
-    -   Handling the zoom level dynamically based on the number and location of destinations was an interesting challenge. Using Leaflet's `fitBounds` allowed for an elegant solution to ensure all destinations were visible without requiring the user to zoom manually.
--   **OpenTripMap Data Inconsistency:**
+-   **Google OAuth Integration:**  
+    Implementing Firebase Google OAuth was straightforward, but ensuring that the authentication state persisted correctly across all pages required global state management via context.
 
-    -   OpenTripMap occasionally returned incomplete or empty data. To avoid breaking the itinerary generation, fallback mechanisms and validation checks were implemented to handle these cases.
+-   **Dynamic Map Rendering:**  
+    Leaflet’s ability to handle dynamic zoom based on marker coordinates was leveraged to ensure the user could always see all destinations. This improved the overall user experience, especially on mobile devices.
 
--   **Cross-Platform Integration:**
-    -   Integrating a Python-based backend with a TypeScript-based frontend required careful coordination, especially when dealing with asynchronous requests, API rate limits, and real-time data rendering on the map.
+-   **Efficient API Calls:**  
+    Since itinerary generation relies on multiple API calls to OpenTripMap, rate-limiting and proper error handling were implemented to ensure API calls did not fail, even under load.
+
+---
 
 ## **6. Potential Improvements**
 
-1. **Cache API Responses:**
+1. **Improve Itinerary Customization:**  
+   Allow users to have more control over itinerary preferences, such as duration of stay at each destination, types of restaurants, and more specific filters (e.g., nightlife, adventure activities).
 
-    - Implementing caching mechanisms to store API responses for common destinations could significantly improve performance and reduce API call frequency.
+2. **Caching API Responses:**  
+   Implementing caching mechanisms would reduce the number of API calls made to OpenTripMap, improving performance and reducing load times for commonly requested locations.
 
-2. **Enhanced Filtering of Activities:**
+3. **Multi-Provider Authentication:**  
+   While Google OAuth is integrated, adding additional authentication providers (e.g., Facebook, GitHub) would give users more flexibility in how they log in.
 
-    - The filtering logic can be improved to provide better recommendations by considering user reviews, proximity to hotels, and opening hours for attractions.
+4. **Progressive Web App (PWA):**  
+   Converting the app into a PWA would allow users to access itineraries offline, enhancing usability while traveling in areas with limited connectivity.
 
-3. **Additional APIs for Accommodation:**
+---
 
-    - Integrating other APIs (e.g., Booking.com or Airbnb) to fetch hotel data based on check-in/check-out dates would add more detailed accommodation information.
+## **7. How to Set Up the Project**
 
-4. **Offline Access and PWA:**
-    - Transforming the app into a Progressive Web App (PWA) would allow offline access to itineraries, improving the user experience while traveling.
+### **Prerequisites**
 
-## **Conclusion**
+-   Node.js installed (v16+)
+-   Firebase account with Firestore and Google OAuth enabled.
+-   Next.js installed.
 
-This project combines modern frontend and backend technologies to deliver a powerful travel itinerary generator. The decision to use React, TypeScript, Leaflet, Flask, and OpenTripMap ensures a scalable, maintainable, and robust solution. Challenges such as handling empty API responses and calculating travel costs were effectively managed, and future improvements can further enhance the functionality and user experience of the application.
+### **Installation**
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/AdityaBhattacharya1/solid-eureka.git
+cd solid-eureka
+```
+
+2. Install dependencies:
+
+```bash
+cd client
+npm install
+
+cd server
+pip install -r requirements.txt
+```
+
+3. Set up the environment variables in the client and server folders using sample env as reference.
+
+```bash
+# client
+NEXT_PUBLIC_FIREBASE_API_KEY=your-firebase-api-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-firebase-auth-domain
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-firebase-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-firebase-storage-bucket
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-firebase-sender-id
+NEXT_PUBLIC_FIREBASE_APP_ID=your-firebase-app-id
+```
+
+```bash
+# server
+GOOGLE_API_KEY=gemini-api-key
+OPENTRIPMAP_API_KEY=opentripmap-api-key
+```
+
+4. Run the development server:
+
+```bash
+cd client && npm run dev
+cd server && python run.py
+```
+
+5. Open your browser and navigate to `http://localhost:3000`.
+
+### **Usage**
+
+-   Visit `/auth` to sign in with Google.
+-   Generate a travel itinerary and see it displayed on the interactive map.
+-   Visit `/dashboard` to see previously generated itineraries.
+
+## **8. Conclusion**
+
+The WayWise travel itinerary generator is a modern web application built with scalable and maintainable technologies like **Next.js**, **TypeScript**, and **Firebase**. It integrates a rich set of features, including map-based visualization of destinations and personalized itineraries stored in Firestore. The combination of **Google OAuth** login, **Firestore** storage, and an intuitive UI ensures that users can generate and access travel plans in a seamless and secure manner.
+
+The project addresses several challenges, such as handling inconsistent API responses and dynamically rendering map data. Future enhancements could include additional customization options, caching mechanisms, and expanded authentication methods, further improving the user experience.
