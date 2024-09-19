@@ -7,3 +7,4 @@ langchain_google_genai
 googlesearch-python
 python-dotenv
 flask_cors
+gunicorn
