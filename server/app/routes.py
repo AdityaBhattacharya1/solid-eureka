@@ -36,6 +36,7 @@ def register_routes(app):
             "activities": activities,
             "hotels": hotels_data[:5],
             "coordinates": coordinates_list,
+            "transport_cost": total_transport_cost,
         }
 
         return jsonify(response)

@@ -4,13 +4,12 @@ import math
 from langchain.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.output_parsers import StrOutputParser
-from dotenv import dotenv_values
 import random
 from .utils import calculate_transport_cost
+import os
 
-config = dotenv_values(".env")
 
-API_KEY = config["OPENTRIPMAP_API_KEY"]
+API_KEY = os.environ.get("OPENTRIPMAP_API_KEY")
 
 
 def get_location_coordinates(location_name):
@@ -115,7 +114,9 @@ def generate_itinerary_with_langchain_per_day(
     num_days = (b - a).days
 
     location_coords = get_location_coordinates(location)
-    activities = get_activities_from_opentripmap(location_coords, 10000, preferences)
+    activities = get_activities_from_opentripmap(
+        location_coords, 10 * 1000, preferences
+    )  # radius in meters, so 10 Km radius
 
     daily_itinerary = []
     used_activities = set()
