@@ -13,6 +13,8 @@ import { db } from '@/firebase'
 import { collection, addDoc } from 'firebase/firestore'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import { MdErrorOutline } from 'react-icons/md'
+import ItineraryForm from './components/ItineraryForm'
 
 export default function HomePage() {
 	const [location, setLocation] = useState('')
@@ -32,18 +34,6 @@ export default function HomePage() {
 		router.push('/auth') // Redirect to login if not authenticated
 		return null
 	}
-
-	const MIN_DATE = new Date()
-	const options = [
-		{ value: 'historical', label: 'Historical' },
-		{ value: 'museums', label: 'Museums' },
-		{ value: 'restaurants', label: 'Restaurants' },
-		{ value: 'natural', label: 'Parks' },
-		{ value: 'shops', label: 'Shopping' },
-		{ value: 'entertainment', label: 'Entertainment' },
-		{ value: 'party', label: 'Party' },
-		{ value: 'natural', label: 'Nature' },
-	]
 
 	const scrollToElement = (elemId: string): void => {
 		if (typeof window !== undefined) {
@@ -115,7 +105,7 @@ export default function HomePage() {
 				className="hero bg-base-200 min-h-screen"
 				style={{
 					backgroundImage:
-						'url(https://img.daisyui.com/images/stock/photo-1507358522600-9f71e620c44e.webp)',
+						'url(https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)',
 				}}
 			>
 				<div className="hero-overlay bg-zinc-900 bg-opacity-90"></div>
@@ -138,80 +128,18 @@ export default function HomePage() {
 						</p>
 					</div>
 					<div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-						<form onSubmit={handleSubmit} className="card-body">
-							<div className="form-control">
-								<label className="label">
-									<span className="label-text">Location</span>
-								</label>
-								<input
-									type="text"
-									placeholder="Location"
-									value={location}
-									onChange={(e) =>
-										setLocation(e.target.value)
-									}
-									className="input input-bordered text-black"
-									required
-								/>
-							</div>
-							<div className="form-control">
-								<label className="label">
-									<span className="label-text">
-										Trip Dates
-									</span>
-								</label>
-								<Datepicker
-									value={dates}
-									onChange={(newValue) => setDates(newValue)}
-									showShortcuts={false}
-									separator="to"
-									minDate={MIN_DATE}
-								/>
-							</div>
-							<div className="form-control">
-								<label className="label">
-									<span className="label-text">
-										Budget (USD)
-									</span>
-								</label>
-								<input
-									type="number"
-									placeholder="Budget"
-									value={budget}
-									onChange={(e) =>
-										setBudget(parseInt(e.target.value))
-									}
-									className="input input-bordered text-black"
-									required
-								/>
-							</div>
-
-							<div className="form-control">
-								<label className="label">
-									<span className="label-text">
-										Preferences
-									</span>
-								</label>
-
-								<Select
-									primaryColor="white"
-									value={preferences}
-									onChange={(value) => setPreferences(value)}
-									options={options}
-									isClearable
-									isMultiple
-									isSearchable
-								/>
-							</div>
-
-							<button
-								type="submit"
-								className="btn btn-primary btn-outline my-4"
-								disabled={loading}
-							>
-								Generate Itinerary!
-							</button>
-						</form>
+						<ItineraryForm
+							budget={budget}
+							setBudget={setBudget}
+							dates={dates}
+							setDates={setDates}
+							handleSubmit={handleSubmit}
+							loading={loading}
+							location={location}
+							setLocation={setLocation}
+							preferences={preferences}
+							setPreferences={setPreferences}
+						/>
 					</div>
 				</div>
 			</div>
@@ -259,25 +187,45 @@ export default function HomePage() {
 								<h2 className="text-4xl font-bold text-center py-10">
 									Recommended Hotels
 								</h2>
-								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-									{itineraryData?.hotels?.map(
-										(hotel: any, index: number) => (
-											<HotelCard
-												key={index}
-												name={hotel.name}
-												location={hotel.location}
-												price={hotel.price}
-												rating={hotel.rating}
-												imgUrl={hotel.imgUrl}
-											/>
-										)
-									)}
-								</div>
-
-								{itineraryData.activities && (
-									<ActivityList
-										activities={itineraryData.activities}
-									/>
+								{itineraryData?.hotels ? (
+									<div className="text-center font-semibold flex items-center flex-col gap-5">
+										<MdErrorOutline size={32} />
+										Could not fetch hotels, error scraping
+										Booking.com
+									</div>
+								) : (
+									<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+										{itineraryData?.hotels?.map(
+											(hotel: any, index: number) => (
+												<HotelCard
+													key={index}
+													name={hotel.name}
+													location={hotel.location}
+													price={hotel.price}
+													rating={hotel.rating}
+													imgUrl={hotel.imgUrl}
+												/>
+											)
+										)}
+									</div>
+								)}
+								<h3 className="text-4xl font-bold py-10 text-center">
+									Suggested Activities
+								</h3>
+								{itineraryData.activities ? (
+									<div className="text-center font-semibold flex items-center flex-col gap-5">
+										<MdErrorOutline size={32} />
+										Could not fetch activities, error
+										scraping google.
+									</div>
+								) : (
+									itineraryData.activities && (
+										<ActivityList
+											activities={
+												itineraryData.activities
+											}
+										/>
+									)
 								)}
 							</div>
 						)}

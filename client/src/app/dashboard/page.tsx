@@ -74,7 +74,11 @@ const Dashboard = () => {
 
 									<div>Budget: {itinerary['budget']}</div>
 									<div>
-										Preferences:{' '}
+										Location:{' '}
+										{itinerary['place']?.toString()}
+									</div>
+									<div>
+										Location:{' '}
 										{itinerary['preferences']?.toString()}
 									</div>
 									<div>

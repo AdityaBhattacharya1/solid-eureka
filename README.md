@@ -111,6 +111,12 @@ The backend is implemented as server-side functions in Next.js using API routes.
 -   **Firebase Data Storage:**  
     Storing and retrieving itineraries for specific users required efficient integration with Firebase Firestore, ensuring that only authenticated users could access their data.
 
+-   **AI Prompt Fine Tuning:**  
+    The prompt provided to the AI chain had to be fine tuned repeatedly and iteratively in order to obtain uniform and accurate results.
+
+-   **Data Scraping:**  
+    Since no proper centralised data source could be found for accurately generating relevant itineraries, other data sources like Google and Booking.com had to be scraped in an efficient manner so as to prevent getting rate limited.
+
 ---
 
 ## **5. Interesting Nuances and Challenges**

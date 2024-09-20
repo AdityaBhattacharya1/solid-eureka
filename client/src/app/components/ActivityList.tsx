@@ -7,9 +7,6 @@ interface ActivityListProps {
 
 const ActivityList: React.FC<ActivityListProps> = ({ activities }) => (
 	<div>
-		<h3 className="text-4xl font-bold py-10 text-center">
-			Suggested Activities
-		</h3>
 		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 			{activities.map((activity, index) => (
 				<ListItem key={index} url={activity} />
@@ -44,9 +41,6 @@ const ListItem = ({ url }: { url: string }) => {
 
 	return (
 		<div className="card lg:card-side bg-base-100 shadow-xl m-4 w-[30rem]">
-			{/* <figure>
-				<img src={previewData.image.url} alt={previewData.title} />
-			</figure> */}
 			<div className="card-body">
 				<h2 className="card-title capitalize">{previewData.title}</h2>
 				<p>{previewData.description}</p>

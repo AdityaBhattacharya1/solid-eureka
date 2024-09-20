@@ -31,7 +31,7 @@ const Login = () => {
 			className="hero h-screen bg-gray-100"
 			style={{
 				backgroundImage:
-					'url(https://img.daisyui.com/images/stock/photo-1507358522600-9f71e620c44e.webp)',
+					'url(https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)',
 			}}
 		>
 			<div className="hero-overlay bg-zinc-900 bg-opacity-90"></div>

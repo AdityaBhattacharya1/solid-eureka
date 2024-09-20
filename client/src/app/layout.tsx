@@ -3,6 +3,7 @@ import './globals.css'
 import 'leaflet/dist/leaflet.css'
 import Navbar from './components/Navbar'
 import { AuthProvider } from '@/hooks/useAuth'
+import Footer from './components/Footer'
 
 export const metadata: Metadata = {
 	title: 'WanderWise - Your Personalized Journey, Day by Day!',
@@ -21,6 +22,7 @@ export default function RootLayout({
 				<AuthProvider>
 					<Navbar />
 					{children}
+					<Footer />
 				</AuthProvider>
 			</body>
 		</html>
