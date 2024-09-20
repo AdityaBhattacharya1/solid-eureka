@@ -15,7 +15,7 @@ def scrape_booking_hotels(
     }
 
     response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, "lxml")
+    soup = BeautifulSoup(response.text, "html.parser")
     hotels = soup.findAll("div", {"data-testid": "property-card"})
 
     hotels_data = []
